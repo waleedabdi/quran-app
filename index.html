@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Noor Reader</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="logo" href="#home" data-view="home">Noor Reader</a>
+    <nav aria-label="Main">
+      <ul class="nav-list">
+        <li><a href="#home" data-view="home">Home</a></li>
+        <li><a href="#bookmarks" data-view="bookmarks">Bookmarks</a></li>
+        <li><a href="#notes" data-view="notes">Notes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Messages shared by every screen (the "States" frame) -->
+    <p id="loading" class="message" role="status" hidden>Loading...</p>
+    <div id="error" class="message message-error" role="alert" hidden>
+      <p id="error-message"></p>
+      <button id="retry" type="button">Try again</button>
+    </div>
+
+    <!-- Screen 1: Home -->
+    <section id="view-home" aria-labelledby="home-title">
+      <h1 id="home-title">Read, listen, reflect</h1>
+
+      <form id="search-form" role="search">
+        <label for="search-input">Search surah by name or number</label>
+        <input id="search-input" type="search" autocomplete="off" />
+      </form>
+
+      <section id="continue-card" class="card" aria-labelledby="continue-title" hidden>
+        <h2 id="continue-title">Continue reading</h2>
+        <p id="continue-text"></p>
+        <button id="continue-button" type="button">Continue</button>
+      </section>
+
+      <h2 id="surah-heading">All surahs</h2>
+      <ul id="surah-list" class="card-grid"></ul>
+      <p id="surah-empty" class="message" hidden>No surah matches your search.</p>
+    </section>
+
+    <!-- Screen 2: Reading view -->
+    <section id="view-reading" aria-labelledby="reading-title" hidden>
+      <button id="back-button" type="button">Back to surahs</button>
+      <h2 id="reading-title"></h2>
+
+      <div class="controls">
+        <button id="play-surah" type="button">Play surah</button>
+
+        <label for="translation-select">Translation</label>
+        <select id="translation-select">
+          <option value="en.sahih">Sahih International</option>
+        </select>
+
+        <label for="text-size">Text size</label>
+        <input id="text-size" type="range" min="22" max="40" value="28" />
+      </div>
+
+      <div id="verses"></div>
+
+      <div class="audio-bar">
+        <button id="audio-toggle" type="button">Play</button>
+        <audio id="player"></audio>
+      </div>
+    </section>
+
+    <!-- Screen 3: Bookmarks -->
+    <section id="view-bookmarks" aria-labelledby="bookmarks-title" hidden>
+      <h2 id="bookmarks-title">Bookmarks</h2>
+      <ul id="bookmark-list"></ul>
+      <p id="bookmark-empty" class="message" hidden>No bookmarks yet. Save a verse while reading.</p>
+      <button id="browse-surahs" type="button" hidden>Browse surahs</button>
+    </section>
+
+    <!-- Screen 3: Notes -->
+    <section id="view-notes" aria-labelledby="notes-title" hidden>
+      <h2 id="notes-title">Notes</h2>
+      <ul id="note-list"></ul>
+
+      <form id="note-form" novalidate>
+        <h3 id="note-form-title">New note</h3>
+        <input id="note-id" type="hidden" />
+        <label for="note-text">Your note</label>
+        <textarea id="note-text" rows="4"></textarea>
+        <p id="note-error" class="message-error" role="alert"></p>
+        <button id="note-save" type="submit">Save note</button>
+      </form>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <p>Quran text and audio from the Al Quran Cloud API.</p>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
