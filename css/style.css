@@ -1,0 +1,15 @@
+/* Arabic text */
+.arabic {
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+}
+
+#verses .arabic {
+  font-size: var(--arabic-size, 28px);
+  line-height: 2;
+  text-align: right;
+}
+
+/* The verse that is playing */
+.verse.playing {
+  background-color: #e6efea;
+}
