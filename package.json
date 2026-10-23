@@ -9,7 +9,17 @@
   "jest": {
     "testEnvironment": "node",
     "transform": {},
-    "collectCoverageFrom": ["js/**/*.js"],
-    "coveragePathIgnorePatterns": ["/node_modules/", "js/main.js"]
+    "collectCoverageFrom": [
+      "js/**/*.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/",
+      "js/main.js"
+    ]
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2"
   }
 }
