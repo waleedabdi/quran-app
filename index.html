@@ -30,6 +30,7 @@
       <p id="error-message"></p>
       <button id="retry" type="button">Try again</button>
     </div>
+    <p id="feedback" class="message" role="status" hidden></p>
 
     <!-- Screen 1: Home -->
     <section id="view-home" aria-labelledby="home-title">
@@ -88,6 +89,7 @@
     <section id="view-notes" aria-labelledby="notes-title" hidden>
       <h2 id="notes-title">Notes</h2>
       <ul id="note-list"></ul>
+      <p id="note-empty" class="message" hidden>No notes yet. Write your first one below.</p>
 
       <form id="note-form" novalidate>
         <h3 id="note-form-title">New note</h3>
@@ -96,6 +98,7 @@
         <textarea id="note-text" rows="4"></textarea>
         <p id="note-error" class="message-error" role="alert"></p>
         <button id="note-save" type="submit">Save note</button>
+        <button id="note-cancel" type="button" hidden>Cancel</button>
       </form>
     </section>
 
