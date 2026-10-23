@@ -1,15 +1,515 @@
-/* Arabic text */
+/* ==========================================================
+   Noor Reader - styles
+   Colors: deep green, gold, cream (plus neutral grays and white)
+   ========================================================== */
+
+:root {
+  --green: #1f5c4a;
+  --green-tint: #e6efea;
+  --gold: #c9a24b;
+  --cream: #faf7f0;
+  --white: #ffffff;
+  --text: #2b2b2b;
+  --muted: #6b6657;
+  --border: #e2dacb;
+  --radius: 12px;
+}
+
+/* ---------- Basics ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* The "hidden" word must always win over display rules below. */
+[hidden] {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--cream);
+}
+
+main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.75rem;
+  line-height: 1.25;
+  color: var(--green);
+}
+
+h1 {
+  font-size: clamp(1.6rem, 4vw, 2.25rem);
+}
+
+h2 {
+  font-size: clamp(1.2rem, 3vw, 1.5rem);
+}
+
+/* ---------- Buttons and form fields ---------- */
+
+button {
+  font: inherit;
+  color: var(--text);
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--green-tint);
+}
+
+/* Main action buttons are green. */
+#continue-button,
+#note-save,
+#retry,
+#browse-surahs {
+  color: var(--cream);
+  background-color: var(--green);
+  border-color: var(--green);
+}
+
+#continue-button:hover,
+#note-save:hover,
+#retry:hover,
+#browse-surahs:hover {
+  background-color: #174536;
+}
+
+input[type="search"],
+textarea,
+select {
+  font: inherit;
+  color: var(--text);
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+input[type="search"],
+textarea {
+  width: 100%;
+}
+
+input[type="range"] {
+  accent-color: var(--green);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* A clear outline for people who use the keyboard. */
+:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* ---------- Header and footer ---------- */
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding: 0.9rem clamp(1rem, 4vw, 2.5rem);
+  color: var(--cream);
+  background-color: var(--green);
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--cream);
+  text-decoration: none;
+}
+
+.nav-list {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-list a {
+  padding: 0.25rem 0;
+  color: var(--cream);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.nav-list a:hover {
+  border-bottom-color: var(--gold);
+}
+
+.site-footer {
+  padding: 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+/* ---------- Messages (loading, error, saved) ---------- */
+
+.message {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.message-error {
+  border-left: 4px solid var(--gold);
+}
+
+#error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+#error p {
+  margin: 0;
+}
+
+#feedback {
+  border-left: 4px solid var(--green);
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  padding: 1rem 1.25rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ---------- Home ---------- */
+
+#search-form {
+  max-width: 600px;
+}
+
+#continue-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  margin: 1.25rem 0;
+  border-left: 4px solid var(--gold);
+}
+
+#continue-card h2 {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+#continue-text {
+  flex: 1;
+  margin: 0;
+  font-weight: 600;
+}
+
+#surah-heading {
+  margin-top: 1.5rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.surah-card {
+  display: grid;
+  grid-template-columns: 2.25rem 1fr auto;
+  grid-template-areas:
+    "num name arabic"
+    "num count count";
+  align-items: center;
+  gap: 0.15rem 0.75rem;
+  width: 100%;
+  padding: 0.9rem;
+  text-align: left;
+  border-radius: var(--radius);
+}
+
+.surah-card:hover {
+  border-color: var(--gold);
+}
+
+.surah-number {
+  grid-area: num;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.85rem;
+  color: var(--green);
+  background-color: var(--green-tint);
+  border-radius: 50%;
+}
+
+.surah-name {
+  grid-area: name;
+  font-weight: 600;
+}
+
+.surah-card .arabic {
+  grid-area: arabic;
+  font-size: 1.3rem;
+  color: var(--green);
+}
+
+.surah-count {
+  grid-area: count;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* ---------- Reading view ---------- */
+
 .arabic {
   font-family: "Amiri", "Noto Naskh Arabic", serif;
 }
 
 #verses .arabic {
+  margin: 0 0 0.5rem;
   font-size: var(--arabic-size, 28px);
   line-height: 2;
   text-align: right;
 }
 
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  margin: 1rem 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.controls label {
+  margin: 0;
+}
+
+.controls input[type="range"] {
+  width: 9rem;
+}
+
+.verse {
+  margin: 0 0 0.75rem;
+  padding: 1rem 1.25rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.translation {
+  margin: 0 0 0.75rem;
+}
+
+.verse button {
+  margin: 0 0.4rem 0.4rem 0;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+}
+
 /* The verse that is playing */
 .verse.playing {
-  background-color: #e6efea;
+  background-color: var(--green-tint);
+  border-color: var(--green);
+}
+
+/* A bookmarked verse */
+.verse-bookmark[aria-pressed="true"] {
+  background-color: var(--gold);
+  border-color: var(--gold);
+}
+
+.audio-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  color: var(--cream);
+  background-color: var(--green);
+  border-radius: var(--radius);
+}
+
+/* ---------- Bookmarks and notes ---------- */
+
+#bookmark-list,
+#note-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+#bookmark-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#note-list li {
+  padding: 0.75rem 1rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.note-text {
+  margin: 0 0 0.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.note-date {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.note-edit,
+.note-delete {
+  margin-right: 0.4rem;
+  font-size: 0.85rem;
+}
+
+#note-form {
+  max-width: 640px;
+  padding: 1rem 1.25rem;
+  background-color: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+#note-form h3 {
+  margin-top: 0;
+}
+
+#note-form textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+textarea[aria-invalid="true"] {
+  border: 2px solid var(--gold);
+}
+
+#note-error {
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+#note-error:empty {
+  display: none;
+}
+
+/* ---------- Tablet ---------- */
+
+@media (max-width: 900px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ---------- Phone ---------- */
+
+@media (max-width: 600px) {
+  main {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+
+  .site-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-list {
+    gap: 1rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .controls select,
+  .controls input[type="range"] {
+    width: 100%;
+  }
+
+  #continue-card button,
+  #error button {
+    width: 100%;
+  }
+
+  #bookmark-list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .verse {
+    padding: 0.85rem;
+  }
 }
