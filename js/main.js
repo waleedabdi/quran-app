@@ -38,12 +38,15 @@ import {
 
 const translationSelect = document.querySelector("#translation-select");
 const textSize = document.querySelector("#text-size");
+const searchForm = document.querySelector("#search-form");
+const searchInput = document.querySelector("#search-input");
 const noteForm = document.querySelector("#note-form");
 const noteText = document.querySelector("#note-text");
 const noteId = document.querySelector("#note-id");
 
 let currentSurah = null;      // the surah number you are reading
 let currentSurahName = "";    // its English name
+let allSurahs = [];
 let bookmarks = [];           // all saved bookmarks
 let notes = [];               // all saved notes
 let progress = null;          // where you stopped reading
@@ -57,8 +60,8 @@ async function loadSurahs() {
   hideError();
 
   try {
-    const surahs = await getSurahs();
-    renderSurahs(surahs);
+    allSurahs = await getSurahs();
+    renderSurahs(allSurahs, searchInput.value);
   } catch (error) {
     console.error(error);
     showError("Could not load the surahs. Check your internet connection and try again.");
@@ -257,6 +260,9 @@ setHandlers({
 });
 
 // ---------- Clicks ----------
+
+searchForm.addEventListener("submit", (event) => event.preventDefault());
+searchInput.addEventListener("input", () => renderSurahs(allSurahs, searchInput.value));
 
 document.querySelector("#surah-list").addEventListener("click", (event) => {
   const card = event.target.closest(".surah-card");
