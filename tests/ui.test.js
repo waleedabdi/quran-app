@@ -8,11 +8,13 @@ const fakePage = `
   <p id="loading" hidden></p>
   <div id="error" hidden><p id="error-message"></p></div>
   <p id="feedback" hidden></p>
+  <input id="search-input" type="search" />
   <main>
     <section id="view-home"></section>
     <section id="view-reading" hidden></section>
   </main>
   <ul id="surah-list"></ul>
+  <p id="surah-empty" hidden>No surah matches your search.</p>
   <h2 id="reading-title"></h2>
   <div id="verses"></div>
   <button id="audio-toggle">Play</button>
@@ -97,13 +99,17 @@ describe("screens", () => {
 });
 
 describe("surah list", () => {
+  const surahs = [
+    { number: 1, name: "الفاتحة", englishName: "Al-Fatihah", numberOfAyahs: 7 },
+    { number: 2, name: "البقرة", englishName: "Al-Baqarah", numberOfAyahs: 286 },
+    { number: 12, name: "يوسف", englishName: "Yusuf", numberOfAyahs: 111 },
+  ];
+
   test("renderSurahs draws one card for each surah", () => {
-    ui.renderSurahs([
-      { number: 1, name: "arabic name", englishName: "Al-Fatihah", numberOfAyahs: 7 },
-    ]);
+    ui.renderSurahs(surahs);
 
     const cards = document.querySelectorAll(".surah-card");
-    expect(cards).toHaveLength(1);
+    expect(cards).toHaveLength(3);
     expect(cards[0].dataset.number).toBe("1");
     expect(cards[0].textContent).toContain("Al-Fatihah");
     expect(cards[0].textContent).toContain("7 verses");
@@ -111,6 +117,33 @@ describe("surah list", () => {
     const arabic = cards[0].querySelector(".arabic");
     expect(arabic.lang).toBe("ar");
     expect(arabic.dir).toBe("rtl");
+  });
+
+  test.each([
+    ["al-fatihah", 1],
+    ["  BAQARAH  ", 1],
+    ["2", 1],
+    ["البقرة", 1],
+  ])("filters surahs by query %s", (query, count) => {
+    ui.renderSurahs(surahs, query);
+
+    expect(document.querySelectorAll(".surah-card")).toHaveLength(count);
+    expect($("#surah-empty").hidden).toBe(true);
+  });
+
+  test("shows a no-match message for an invalid query", () => {
+    ui.renderSurahs(surahs, "not a surah");
+
+    expect(document.querySelectorAll(".surah-card")).toHaveLength(0);
+    expect($("#surah-empty").hidden).toBe(false);
+  });
+
+  test("an empty query restores all surahs and hides the no-match message", () => {
+    ui.renderSurahs(surahs, "not a surah");
+    ui.renderSurahs(surahs, "   ");
+
+    expect(document.querySelectorAll(".surah-card")).toHaveLength(3);
+    expect($("#surah-empty").hidden).toBe(true);
   });
 });
 
@@ -120,6 +153,14 @@ describe("reading view", () => {
 
     expect($("#reading-title").textContent).toBe("1. Al-Fatihah");
     expect(document.querySelectorAll(".verse")).toHaveLength(2);
+    expect(document.querySelectorAll(".verse .arabic")[0].textContent).toBe("arabic one");
+    expect(document.querySelectorAll(".verse .translation")[0].textContent).toBe(
+      "1. translation one"
+    );
+    expect(document.querySelectorAll(".verse .arabic")[1].textContent).toBe("arabic two");
+    expect(document.querySelectorAll(".verse .translation")[1].textContent).toBe(
+      "2. translation two"
+    );
     expect(document.querySelectorAll(".verse-bookmark")).toHaveLength(2);
     expect(document.querySelectorAll(".verse-stop")).toHaveLength(2);
     expect(links).toEqual(["https://example.com/1.mp3", "https://example.com/2.mp3"]);
