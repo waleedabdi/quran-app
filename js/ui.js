@@ -5,6 +5,7 @@ const errorBox = document.querySelector("#error");
 const errorMessage = document.querySelector("#error-message");
 const feedbackBox = document.querySelector("#feedback");
 const surahList = document.querySelector("#surah-list");
+const surahEmpty = document.querySelector("#surah-empty");
 const readingTitle = document.querySelector("#reading-title");
 const versesBox = document.querySelector("#verses");
 const audioToggle = document.querySelector("#audio-toggle");
@@ -76,10 +77,22 @@ export function showView(name) {
 
 // ---------- Surahs ----------
 
-export function renderSurahs(surahs) {
+export function renderSurahs(surahs, query = "") {
+  const normalizedQuery = query.trim().toLocaleLowerCase();
+  const isNumberQuery = /^\d+$/.test(normalizedQuery);
+  const matchingSurahs = normalizedQuery
+    ? surahs.filter((surah) =>
+        isNumberQuery
+          ? surah.number === Number(normalizedQuery)
+          : [surah.name, surah.englishName].some((value) =>
+              String(value).toLocaleLowerCase().includes(normalizedQuery)
+            )
+      )
+    : surahs;
+
   surahList.replaceChildren(); // clear the old list first
 
-  surahs.forEach((surah) => {
+  matchingSurahs.forEach((surah) => {
     const item = document.createElement("li");
 
     const card = makeButton("surah-card");
@@ -99,6 +112,8 @@ export function renderSurahs(surahs) {
     item.append(card);
     surahList.append(item);
   });
+
+  surahEmpty.hidden = !normalizedQuery || matchingSurahs.length > 0;
 }
 
 // ---------- Reading view ----------

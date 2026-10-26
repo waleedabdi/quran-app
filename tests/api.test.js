@@ -25,6 +25,12 @@ function fakeResponse(data, { ok = true, status = 200 } = {}) {
 
 beforeEach(() => {
   global.fetch = jest.fn(); // a fake fetch, so no real internet is used
+  const values = new Map();
+  global.localStorage = {
+    getItem: (key) => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, String(value)),
+    removeItem: (key) => values.delete(key),
+  };
 });
 
 describe("Quran API", () => {
@@ -62,111 +68,86 @@ describe("Quran API", () => {
 });
 
 describe("Bookmarks", () => {
-  test("getBookmarks sends a GET request", async () => {
-    fetch.mockResolvedValue(fakeResponse([{ id: 1 }]));
-
-    const result = await getBookmarks();
-
-    expect(result).toEqual([{ id: 1 }]);
-    expect(fetch).toHaveBeenCalledWith(
-      "http://localhost:3000/bookmarks",
-      expect.objectContaining({ headers: { "Content-Type": "application/json" } })
-    );
+  test("returns an empty list when no bookmarks are saved", async () => {
+    await expect(getBookmarks()).resolves.toEqual([]);
   });
 
-  test("addBookmark sends a POST request with the bookmark", async () => {
+  test("saves bookmarks and assigns unique IDs", async () => {
     const bookmark = { surah: 1, surahName: "Al-Fatihah", ayah: 3 };
-    fetch.mockResolvedValue(fakeResponse({ id: 1, ...bookmark }));
-
-    const result = await addBookmark(bookmark);
-
-    const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe("http://localhost:3000/bookmarks");
-    expect(options.method).toBe("POST");
-    expect(JSON.parse(options.body)).toEqual(bookmark);
-    expect(result.id).toBe(1);
+    await expect(addBookmark(bookmark)).resolves.toEqual({ id: 1, ...bookmark });
+    await expect(addBookmark(bookmark)).resolves.toEqual({ id: 2, ...bookmark });
+    await expect(getBookmarks()).resolves.toEqual([
+      { id: 1, ...bookmark },
+      { id: 2, ...bookmark },
+    ]);
   });
 
-  test("deleteBookmark sends a DELETE request and handles an empty answer", async () => {
-    fetch.mockResolvedValue(fakeResponse(null));
+  test("deletes a bookmark without changing other bookmarks", async () => {
+    await addBookmark({ surah: 1, ayah: 2 });
+    await addBookmark({ surah: 2, ayah: 3 });
 
-    const result = await deleteBookmark(3);
-
-    const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe("http://localhost:3000/bookmarks/3");
-    expect(options.method).toBe("DELETE");
-    expect(result).toBeNull();
+    await expect(deleteBookmark(1)).resolves.toBeNull();
+    await expect(getBookmarks()).resolves.toEqual([{ id: 2, surah: 2, ayah: 3 }]);
   });
 });
 
 describe("Notes", () => {
-  test("getNotes sends a GET request", async () => {
-    fetch.mockResolvedValue(fakeResponse([]));
-
-    await getNotes();
-
-    expect(fetch.mock.calls[0][0]).toBe("http://localhost:3000/notes");
+  test("returns an empty list when no notes are saved", async () => {
+    await expect(getNotes()).resolves.toEqual([]);
   });
 
-  test("addNote sends a POST request", async () => {
+  test("saves notes and assigns an ID", async () => {
     const note = { text: "A note", updatedAt: "2026-10-22" };
-    fetch.mockResolvedValue(fakeResponse({ id: 1, ...note }));
-
-    await addNote(note);
-
-    const [, options] = fetch.mock.calls[0];
-    expect(options.method).toBe("POST");
-    expect(JSON.parse(options.body)).toEqual(note);
+    await expect(addNote(note)).resolves.toEqual({ id: 1, ...note });
+    await expect(getNotes()).resolves.toEqual([{ id: 1, ...note }]);
   });
 
-  test("replaceNote sends a PUT request with the whole note", async () => {
-    const note = { id: 2, text: "New text", updatedAt: "2026-10-22" };
-    fetch.mockResolvedValue(fakeResponse(note));
+  test("replaces the full note while preserving its ID", async () => {
+    await addNote({ text: "Old text", updatedAt: "2026-10-21" });
+    const note = { text: "New text", updatedAt: "2026-10-22" };
 
-    const result = await replaceNote(2, note);
-
-    const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe("http://localhost:3000/notes/2");
-    expect(options.method).toBe("PUT");
-    expect(JSON.parse(options.body)).toEqual(note);
-    expect(result).toEqual(note);
+    await expect(replaceNote(1, note)).resolves.toEqual({ id: 1, ...note });
+    await expect(getNotes()).resolves.toEqual([{ id: 1, ...note }]);
   });
 
-  test("deleteNote sends a DELETE request", async () => {
-    fetch.mockResolvedValue(fakeResponse(null));
+  test("rejects when replacing a missing note", async () => {
+    await expect(replaceNote(1, { text: "New text" })).rejects.toThrow("Note 1 was not found.");
+  });
 
-    await deleteNote(2);
+  test("deletes a note", async () => {
+    await addNote({ text: "A note" });
 
-    const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe("http://localhost:3000/notes/2");
-    expect(options.method).toBe("DELETE");
+    await expect(deleteNote(1)).resolves.toBeNull();
+    await expect(getNotes()).resolves.toEqual([]);
   });
 });
 
 describe("Last-read position", () => {
-  test("getProgress sends a GET request for record 1", async () => {
-    fetch.mockResolvedValue(fakeResponse({ id: 1, surah: 1, ayah: 1 }));
-
-    const result = await getProgress();
-
-    expect(fetch.mock.calls[0][0]).toBe("http://localhost:3000/progress/1");
-    expect(result.id).toBe(1);
+  test("returns null when no position has been saved", async () => {
+    await expect(getProgress()).resolves.toBeNull();
   });
 
-  test("updateProgress sends a PATCH request with only the changes", async () => {
-    fetch.mockResolvedValue(fakeResponse({ id: 1, surah: 2, ayah: 10 }));
+  test("saves and updates the last-read position", async () => {
+    await expect(updateProgress({ surah: 2, ayah: 10 })).resolves.toEqual({
+      id: 1,
+      surah: 2,
+      ayah: 10,
+    });
+    await updateProgress({ surahName: "Al-Baqarah", ayah: 11 });
 
-    await updateProgress({ surah: 2, ayah: 10 });
-
-    const [url, options] = fetch.mock.calls[0];
-    expect(url).toBe("http://localhost:3000/progress/1");
-    expect(options.method).toBe("PATCH");
-    expect(JSON.parse(options.body)).toEqual({ surah: 2, ayah: 10 });
+    await expect(getProgress()).resolves.toEqual({
+      id: 1,
+      surah: 2,
+      surahName: "Al-Baqarah",
+      ayah: 11,
+    });
   });
 
-  test("throws when your server answers with an error", async () => {
-    fetch.mockResolvedValue(fakeResponse({}, { ok: false, status: 404 }));
+  test("preserves saved data across API calls", async () => {
+    await addBookmark({ surah: 3, ayah: 4 });
+    await addNote({ text: "Remember this" });
 
-    await expect(getProgress()).rejects.toThrow("Request failed with status 404");
+    await expect(getBookmarks()).resolves.toEqual([{ id: 1, surah: 3, ayah: 4 }]);
+    await expect(getNotes()).resolves.toEqual([{ id: 1, text: "Remember this" }]);
   });
 });

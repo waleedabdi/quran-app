@@ -2,7 +2,11 @@
 
 const QURAN_API = "https://api.alquran.cloud/v1";
 const AUDIO_EDITION = "ar.alafasy"; // the reciter whose audio we use
-const DB_API = "http://localhost:3000"; // your json-server (change this when you deploy)
+const STORAGE_KEYS = {
+  bookmarks: "noor-reader.bookmarks",
+  notes: "noor-reader.notes",
+  progress: "noor-reader.progress",
+};
 
 // ---------- Quran API (read-only) ----------
 
@@ -30,60 +34,99 @@ export function getSurah(number, translation) {
   );
 }
 
-// ---------- Your json-server (bookmarks, notes, progress) ----------
+// ---------- Browser storage (bookmarks, notes, progress) ----------
 
-// One helper for every request to your own server.
-async function request(path, options = {}) {
-  const response = await fetch(`${DB_API}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...options,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+function getStorage() {
+  if (!globalThis.localStorage) {
+    throw new Error("Browser storage is unavailable.");
   }
-
-  const text = await response.text(); // DELETE may send back nothing
-  return text ? JSON.parse(text) : null;
+  return globalThis.localStorage;
 }
 
-// Bookmarks: GET, POST, DELETE
-export function getBookmarks() {
-  return request("/bookmarks");
+function readStoredValue(key, fallback) {
+  const value = getStorage().getItem(key);
+  return value === null ? fallback : JSON.parse(value);
 }
 
-export function addBookmark(bookmark) {
-  return request("/bookmarks", { method: "POST", body: JSON.stringify(bookmark) });
+function writeStoredValue(key, value) {
+  getStorage().setItem(key, JSON.stringify(value));
 }
 
-export function deleteBookmark(id) {
-  return request(`/bookmarks/${id}`, { method: "DELETE" });
+function readCollection(key) {
+  const collection = readStoredValue(key, []);
+  if (!Array.isArray(collection)) {
+    throw new Error(`Saved data for ${key} is not a list.`);
+  }
+  return collection;
 }
 
-// Notes: GET, POST, PUT, DELETE
-export function getNotes() {
-  return request("/notes");
+function nextId(collection) {
+  return collection.reduce((highest, item) => Math.max(highest, Number(item.id) || 0), 0) + 1;
 }
 
-export function addNote(note) {
-  return request("/notes", { method: "POST", body: JSON.stringify(note) });
+// Bookmarks: read, create, delete
+export async function getBookmarks() {
+  return readCollection(STORAGE_KEYS.bookmarks);
 }
 
-// PUT replaces the WHOLE note with the new version.
-export function replaceNote(id, note) {
-  return request(`/notes/${id}`, { method: "PUT", body: JSON.stringify(note) });
+export async function addBookmark(bookmark) {
+  const bookmarks = readCollection(STORAGE_KEYS.bookmarks);
+  const saved = { ...bookmark, id: nextId(bookmarks) };
+  bookmarks.push(saved);
+  writeStoredValue(STORAGE_KEYS.bookmarks, bookmarks);
+  return saved;
 }
 
-export function deleteNote(id) {
-  return request(`/notes/${id}`, { method: "DELETE" });
+export async function deleteBookmark(id) {
+  const bookmarks = readCollection(STORAGE_KEYS.bookmarks);
+  writeStoredValue(
+    STORAGE_KEYS.bookmarks,
+    bookmarks.filter((bookmark) => bookmark.id !== id)
+  );
+  return null;
 }
 
-// Last-read position: GET and PATCH (there is only one record, with id 1)
-export function getProgress() {
-  return request("/progress/1");
+// Notes: read, create, replace, delete
+export async function getNotes() {
+  return readCollection(STORAGE_KEYS.notes);
 }
 
-// PATCH changes only the fields you send. The rest stay the same.
-export function updateProgress(changes) {
-  return request("/progress/1", { method: "PATCH", body: JSON.stringify(changes) });
+export async function addNote(note) {
+  const notes = readCollection(STORAGE_KEYS.notes);
+  const saved = { ...note, id: nextId(notes) };
+  notes.push(saved);
+  writeStoredValue(STORAGE_KEYS.notes, notes);
+  return saved;
+}
+
+export async function replaceNote(id, note) {
+  const notes = readCollection(STORAGE_KEYS.notes);
+  const index = notes.findIndex((item) => item.id === id);
+  if (index === -1) {
+    throw new Error(`Note ${id} was not found.`);
+  }
+  const updated = { ...note, id };
+  notes[index] = updated;
+  writeStoredValue(STORAGE_KEYS.notes, notes);
+  return updated;
+}
+
+export async function deleteNote(id) {
+  const notes = readCollection(STORAGE_KEYS.notes);
+  writeStoredValue(
+    STORAGE_KEYS.notes,
+    notes.filter((note) => note.id !== id)
+  );
+  return null;
+}
+
+// Last-read position
+export async function getProgress() {
+  return readStoredValue(STORAGE_KEYS.progress, null);
+}
+
+export async function updateProgress(changes) {
+  const progress = { ...readStoredValue(STORAGE_KEYS.progress, {}), ...changes, id: 1 };
+  writeStoredValue(STORAGE_KEYS.progress, progress);
+  return progress;
 }

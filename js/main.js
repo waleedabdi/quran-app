@@ -38,12 +38,15 @@ import {
 
 const translationSelect = document.querySelector("#translation-select");
 const textSize = document.querySelector("#text-size");
+const searchForm = document.querySelector("#search-form");
+const searchInput = document.querySelector("#search-input");
 const noteForm = document.querySelector("#note-form");
 const noteText = document.querySelector("#note-text");
 const noteId = document.querySelector("#note-id");
 
 let currentSurah = null;      // the surah number you are reading
 let currentSurahName = "";    // its English name
+let allSurahs = [];
 let bookmarks = [];           // all saved bookmarks
 let notes = [];               // all saved notes
 let progress = null;          // where you stopped reading
@@ -57,8 +60,8 @@ async function loadSurahs() {
   hideError();
 
   try {
-    const surahs = await getSurahs();
-    renderSurahs(surahs);
+    allSurahs = await getSurahs();
+    renderSurahs(allSurahs, searchInput.value);
   } catch (error) {
     console.error(error);
     showError("Could not load the surahs. Check your internet connection and try again.");
@@ -69,7 +72,7 @@ async function loadSurahs() {
 
 // ---------- Your saved data (GET) ----------
 
-// Loads bookmarks, notes and your last-read place from json-server.
+// Loads bookmarks, notes and your last-read place from this browser.
 async function loadSavedData() {
   try {
     [bookmarks, notes, progress] = await Promise.all([
@@ -83,7 +86,7 @@ async function loadSavedData() {
   } catch (error) {
     console.error(error);
     retryAction = loadSavedData;
-    showError("Could not load your saved data. Start the server with: npm run server");
+    showError("Could not load your saved data. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -148,7 +151,7 @@ async function toggleBookmark(ayah) {
   } catch (error) {
     console.error(error);
     retryAction = () => toggleBookmark(ayah);
-    showError("Could not save your bookmark. Make sure the server is running (npm run server) and try again.");
+    showError("Could not save your bookmark. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -163,7 +166,7 @@ async function removeBookmark(id) {
   } catch (error) {
     console.error(error);
     retryAction = () => removeBookmark(id);
-    showError("Could not delete the bookmark. Make sure the server is running (npm run server) and try again.");
+    showError("Could not delete the bookmark. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -200,7 +203,7 @@ async function saveNote(event) {
     resetNoteForm();
   } catch (error) {
     console.error(error);
-    showNoteError("Could not save your note. Make sure the server is running (npm run server) and try again.");
+    showNoteError("Could not save your note. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -215,7 +218,7 @@ async function removeNote(id) {
   } catch (error) {
     console.error(error);
     retryAction = () => removeNote(id);
-    showError("Could not delete the note. Make sure the server is running (npm run server) and try again.");
+    showError("Could not delete the note. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -230,7 +233,7 @@ async function saveProgress(ayah) {
 
   try {
     hideError();
-    // PATCH: only these three fields change
+    // Update only the current reading position.
     progress = await updateProgress({
       surah: currentSurah,
       surahName: currentSurahName,
@@ -241,7 +244,7 @@ async function saveProgress(ayah) {
   } catch (error) {
     console.error(error);
     retryAction = () => saveProgress(ayah);
-    showError("Could not save your place. Make sure the server is running (npm run server) and try again.");
+    showError("Could not save your place. Check that browser storage is enabled and try again.");
   }
 }
 
@@ -257,6 +260,9 @@ setHandlers({
 });
 
 // ---------- Clicks ----------
+
+searchForm.addEventListener("submit", (event) => event.preventDefault());
+searchInput.addEventListener("input", () => renderSurahs(allSurahs, searchInput.value));
 
 document.querySelector("#surah-list").addEventListener("click", (event) => {
   const card = event.target.closest(".surah-card");
